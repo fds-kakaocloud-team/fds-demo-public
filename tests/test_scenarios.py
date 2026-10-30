@@ -25,7 +25,11 @@ class DemoScenarios(unittest.TestCase):
                     matches = [e for e in client.get('/audit-events').json() if e['transaction_id'] == result['id']]
                     self.assertEqual(len(matches), 1)
                     self.assertEqual(matches[0]['decision'], decision)
-                self.assertEqual(len(client.get('/transactions').json()), 3)
+                history = client.get('/transactions').json()
+                self.assertEqual(len(history), 3)
+                self.assertEqual(history[0]['reasons'], ['time_location'])
+                self.assertEqual(history[1]['reasons'], ['paysim'])
+                self.assertEqual(history[2]['reasons'], [])
                 self.assertEqual(client.post('/transactions', json={**base, 'hour': 24}).status_code, 422)
                 with sqlite3.connect(Path(tmp) / 'demo.sqlite3') as conn:
                     conn.execute("CREATE TRIGGER fail_audit BEFORE INSERT ON audit_events BEGIN SELECT RAISE(ABORT, 'audit unavailable'); END")

@@ -38,9 +38,9 @@ def record(tx, event):
 
 def recent(limit=20):
     with closing(connect()) as conn, conn.cursor() as cur:
-        cur.execute('SELECT id,created_at,request_json,decision,risk_score,threshold_value AS threshold,model_type FROM fds_transactions ORDER BY created_at DESC LIMIT %s', (limit,))
+        cur.execute('SELECT t.id,t.created_at,t.request_json,t.decision,t.risk_score,t.threshold_value AS threshold,t.model_type,e.payload_json FROM fds_transactions t LEFT JOIN fds_audit_outbox e ON e.transaction_id=t.id ORDER BY t.created_at DESC LIMIT %s', (limit,))
         rows=cur.fetchall()
-        return [{**row,'request':json.loads(row['request_json'])} for row in rows]
+        return [{**row,'request':json.loads(row['request_json']), 'reasons':json.loads(row['payload_json']).get('reasons', []) if row['payload_json'] else []} for row in rows]
 
 
 def audit(limit=50):
@@ -51,8 +51,8 @@ def audit(limit=50):
 
 def blocked_events(limit=100):
     with closing(connect()) as conn, conn.cursor() as cur:
-        cur.execute("SELECT payload_json FROM fds_audit_outbox WHERE event_type=%s ORDER BY created_at DESC, event_id DESC LIMIT %s", ('transaction_blocked', limit))
-        return [json.loads(row['payload_json']) for row in cur.fetchall()]
+        cur.execute("SELECT e.payload_json,t.request_json FROM fds_audit_outbox e LEFT JOIN fds_transactions t ON t.id=e.transaction_id WHERE e.event_type=%s ORDER BY e.created_at DESC, e.event_id DESC LIMIT %s", ('transaction_blocked', limit))
+        return [{**json.loads(row['payload_json']), 'amount':json.loads(row['request_json']).get('amount') if row['request_json'] else None} for row in cur.fetchall()]
 
 
 def hourly_counts(start, end):

@@ -12,10 +12,27 @@ function showPanel(name){
 }
 document.querySelectorAll('.tab').forEach(button => button.addEventListener('click', () => showPanel(button.dataset.panel)));
 async function request(url, options){const response = await fetch(url, options); const body = await response.json(); if (!response.ok) throw new Error(typeof body.detail === 'string' ? body.detail : '입력값을 확인해 주세요.'); return body;}
-function show(data){result.className = `result ${data.decision}`; result.replaceChildren(); const title=document.createElement('h2'); title.textContent=data.model_type==='public_credit_card'?(data.decision==='block'?'이상 거래 판정':'정상 거래 판정'):(data.decision==='block'?'이체가 차단되었습니다':'이체가 승인되었습니다'); result.append(title); const detail=document.createElement('p'); detail.textContent=`모델 점수 ${(data.risk_score*100).toFixed(1)} · 기준 ${(data.threshold*100).toFixed(1)}`; result.append(detail); if(data.context_score !== undefined){const context=document.createElement('p');context.textContent=`시간·위치 점수 ${(data.context_score*100).toFixed(1)} · 기준 ${(data.context_threshold*100).toFixed(1)}`;result.append(context);} if(data.actual_label){const actual=document.createElement('p'); actual.textContent=`데이터 정답: ${data.actual_label==='Abuse'?'사기':'정상'} · ${data.actual_label===data.status?'일치':'불일치'}`;result.append(actual);} if(data.id){const note=document.createElement('p');note.textContent='모의 거래 결과가 저장되었습니다.';result.append(note);} const back=document.createElement('button');back.className='secondary result-back';back.textContent='돌아가기';back.addEventListener('click',()=>showPanel(activePanel));result.append(back);document.querySelectorAll('.panel').forEach(panel=>panel.hidden=true);result.hidden=false;}
+function reasonLabels(reasons){return (reasons || []).map(reason=>reason==='paysim'?'거래 패턴 모델':reason==='time_location'?'시간·거리 모델':reason);}
+function show(data){
+  result.className=`result ${data.decision}`;result.replaceChildren();
+  const title=document.createElement('h2');title.textContent=data.decision==='block'?'이체가 차단되었습니다':'이체가 승인되었습니다';result.append(title);
+  const summary=document.createElement('p');summary.className='result-reason';
+  const reasons=reasonLabels(data.reasons);
+  summary.textContent=reasons.length?`${reasons.join(' · ')} 기준 초과`:'두 모델 모두 기준 미만';result.append(summary);
+  for(const [label,score,threshold] of [['거래 패턴 모델',data.risk_score,data.threshold],['시간·거리 모델',data.context_score,data.context_threshold]]){
+    if(score===undefined)continue;
+    const detail=document.createElement('p');detail.textContent=`${label} ${(score*100).toFixed(1)}점 / 기준 ${(threshold*100).toFixed(1)}점`;result.append(detail);
+  }
+  if(data.id){const id=document.createElement('p');id.textContent=`거래 ID ${data.id}`;result.append(id);}
+  const back=document.createElement('button');back.className='secondary result-back';back.textContent='돌아가기';back.addEventListener('click',()=>showPanel(activePanel));result.append(back);document.querySelectorAll('.panel').forEach(panel=>panel.hidden=true);result.hidden=false;
+}
 function fail(e){error.textContent=e.message||'서버에 연결할 수 없습니다.';error.hidden=false;}
-async function loadExamples(){try{const items=await request('/public/examples');$('example').replaceChildren(...items.map(item=>new Option(`${item.label} 사례 ${item.id.split('-')[1]} · 금액 ${item.amount}`,item.id)));if(!items.length)throw new Error('사용할 사례가 없습니다.');}catch(e){$('example').replaceChildren(new Option('공개 데이터 준비 필요',''));$('run-public').disabled=true;}}
-$('run-public').addEventListener('click',async()=>{clearResult();try{show(await request(`/public/examples/${encodeURIComponent($('example').value)}/predict`,{method:'POST'}));}catch(e){fail(e);}});
+const scenarios={normal:{amount:10000,balance:100000,hour:12,distance:5},transaction:{amount:100000,balance:100000,hour:12,distance:5},context:{amount:10000,balance:100000,hour:2,distance:1000}};
+function fillScenario(scenario){
+  $('bank').value='가상은행';$('account').value='1234567890';$('recipient').value='김민수';
+  $('amount').value=scenario.amount;$('oldbalance').value=scenario.balance;$('hour').value=scenario.hour;$('distance').value=scenario.distance;clearResult();
+}
+document.querySelectorAll('[data-scenario]').forEach(button=>button.addEventListener('click',()=>fillScenario(scenarios[button.dataset.scenario])));
 $('random-fill').addEventListener('click', () => {
   const pick = values => values[Math.floor(Math.random() * values.length)];
   // Vary both low- and high-risk-looking examples; the models decide the outcome.
@@ -35,8 +52,20 @@ $('random-fill').addEventListener('click', () => {
 $('form').addEventListener('submit',event=>{event.preventDefault();clearResult();$('confirm-recipient').textContent=$('recipient').value;$('confirm-account').textContent=`${$('bank').value} ${$('account').value}`;$('confirm-amount').textContent=`${Number($('amount').value).toLocaleString()}원`;$('confirm-balance').textContent=`${Number($('oldbalance').value).toLocaleString()}원`;$('confirm-hour').textContent=`${$('hour').value}시`;$('confirm-distance').textContent=`${Number($('distance').value).toLocaleString()} km`;$('form').hidden=true;$('confirm').hidden=false;$('manual-title').textContent='이체 확인';});
 $('edit').addEventListener('click',()=>{$('confirm').hidden=true;$('form').hidden=false;$('manual-title').textContent='어디로 보낼까요?';});
 $('send').addEventListener('click',async()=>{clearResult();const button=$('send');button.disabled=true;try{const data={amount:Number($('amount').value),oldbalance:Number($('oldbalance').value),transaction_type:'TRANSFER',hour:Number($('hour').value),distance_from_last_km:Number($('distance').value)};show(await request('/transactions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}));$('confirm').hidden=true;$('form').hidden=false;$('manual-title').textContent='어디로 보낼까요?';}catch(e){fail(e);}finally{button.disabled=false;}});
-async function loadHistory(){try{const rows=await request('/transactions');const container=$('history');container.replaceChildren();if(!rows.length){container.textContent='거래 내역이 없습니다.';return;}rows.forEach(row=>{const item=document.createElement('div');item.className='history-row';const info=document.createElement('span');info.textContent=`${row.request.amount.toLocaleString()} · ${new Date(row.created_at).toLocaleString('ko-KR')}`;const status=document.createElement('strong');status.textContent=row.decision==='block'?'차단':'승인';status.className=row.decision;item.append(info,status);container.append(item);});}catch(e){fail(e);}}
-$('refresh').addEventListener('click',loadHistory);loadExamples();
+async function loadHistory(){
+  try{const rows=await request('/transactions');const container=$('history');container.replaceChildren();
+    if(!rows.length){container.textContent='거래 내역이 없습니다.';return;}
+    rows.forEach(row=>{
+      const item=document.createElement('div');item.className='history-row';const info=document.createElement('div');
+      const amount=document.createElement('strong');amount.textContent=`${row.request.amount.toLocaleString()}원`;
+      const meta=document.createElement('small');meta.textContent=new Date(row.created_at).toLocaleString('ko-KR');
+      const reason=document.createElement('small');const reasons=reasonLabels(row.reasons);reason.textContent=reasons.length?`차단 원인: ${reasons.join(' · ')}`:row.decision==='block'?'차단 원인 기록 없음':'두 모델 기준 미만';
+      const id=document.createElement('small');id.textContent=`거래 ID ${row.id}`;info.append(amount,meta,reason,id);
+      const status=document.createElement('strong');status.textContent=row.decision==='block'?'차단':'승인';status.className=row.decision;item.append(info,status);container.append(item);
+    });
+  }catch(e){fail(e);}
+}
+$('refresh').addEventListener('click',loadHistory);
 
 let seenAlertIds = null;
 let unreadAlerts = 0;
@@ -48,9 +77,10 @@ function renderAlerts(items){
     const row=document.createElement('div'); row.className='alert-row';
     const title=document.createElement('strong'); title.textContent='이상 거래 차단';
     const meta=document.createElement('small');
-    const reason=alert.reasons.map(value=>value==='paysim'?'거래':'시간·거리').join(', ');
-    meta.textContent=`${new Date(alert.created_at).toLocaleString('ko-KR')} · ${reason || '모델 판정'} · ${alert.transaction_id}`;
-    row.append(title,meta); list.append(row);
+    const reasons=reasonLabels(alert.reasons);
+    const amount=document.createElement('p');amount.textContent=alert.amount == null ? '금액 정보 없음' : `${Number(alert.amount).toLocaleString()}원`;
+    meta.textContent=`${new Date(alert.created_at).toLocaleString('ko-KR')} · ${reasons.join(' · ') || '차단 원인 기록 없음'} · 거래 ID ${alert.transaction_id}`;
+    row.append(title,amount,meta); list.append(row);
   }
 }
 async function checkAlerts(){

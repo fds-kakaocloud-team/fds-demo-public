@@ -24,4 +24,4 @@ def alerts():
         raise HTTPException(503, '보안 이벤트 저장소에 연결할 수 없습니다.')
     return [{'event_id': event.get('event_id', event['transaction_id']),
              'transaction_id': event['transaction_id'], 'created_at': event['created_at'],
-             'reasons': event.get('reasons', [])} for event in events]
+             'reasons': event.get('reasons', []), 'amount': event.get('amount')} for event in events]

@@ -37,8 +37,8 @@ def record(tx, event):
 
 def recent(limit=20):
     with closing(connect()) as conn, conn:
-        rows = conn.execute('SELECT * FROM transactions ORDER BY rowid DESC LIMIT ?', (limit,)).fetchall()
-        return [{**dict(row), 'request': json.loads(row['request_json'])} for row in rows]
+        rows = conn.execute('SELECT t.*, e.payload_json FROM transactions t LEFT JOIN audit_events e ON e.transaction_id = t.id ORDER BY t.rowid DESC LIMIT ?', (limit,)).fetchall()
+        return [{**dict(row), 'request': json.loads(row['request_json']), 'reasons': json.loads(row['payload_json']).get('reasons', []) if row['payload_json'] else []} for row in rows]
 
 
 def audit(limit=50):
@@ -49,8 +49,8 @@ def audit(limit=50):
 
 def blocked_events(limit=100):
     with closing(connect()) as conn, conn:
-        rows = conn.execute("SELECT payload_json FROM audit_events WHERE event_type = ? ORDER BY id DESC LIMIT ?", ('transaction_blocked', limit)).fetchall()
-        return [json.loads(row['payload_json']) for row in rows]
+        rows = conn.execute("SELECT e.payload_json, t.request_json FROM audit_events e LEFT JOIN transactions t ON t.id = e.transaction_id WHERE e.event_type = ? ORDER BY e.id DESC LIMIT ?", ('transaction_blocked', limit)).fetchall()
+        return [{**json.loads(row['payload_json']), 'amount': json.loads(row['request_json']).get('amount') if row['request_json'] else None} for row in rows]
 
 
 def hourly_counts(start, end):
