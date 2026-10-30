@@ -53,6 +53,12 @@ def blocked_events(limit=100):
         return [json.loads(row['payload_json']) for row in rows]
 
 
+def hourly_counts(start, end):
+    with closing(connect()) as conn, conn:
+        rows = conn.execute("SELECT substr(created_at,1,13) AS hour, decision, count(*) AS count FROM transactions WHERE created_at >= ? AND created_at < ? GROUP BY substr(created_at,1,13), decision", (start, end)).fetchall()
+        return [dict(row) for row in rows]
+
+
 # Keep the SQLite implementation for local development and tests.
 if os.getenv('FDS_STORAGE', 'sqlite') == 'mysql':
     from app import mysql_store as _backend
@@ -61,5 +67,6 @@ if os.getenv('FDS_STORAGE', 'sqlite') == 'mysql':
     recent = _backend.recent
     audit = _backend.audit
     blocked_events = _backend.blocked_events
+    hourly_counts = _backend.hourly_counts
 elif os.getenv('FDS_STORAGE', 'sqlite') != 'sqlite':
     raise ValueError('FDS_STORAGE must be sqlite or mysql')

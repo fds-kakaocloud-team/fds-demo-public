@@ -53,3 +53,9 @@ def blocked_events(limit=100):
     with closing(connect()) as conn, conn.cursor() as cur:
         cur.execute("SELECT payload_json FROM fds_audit_outbox WHERE event_type=%s ORDER BY created_at DESC, event_id DESC LIMIT %s", ('transaction_blocked', limit))
         return [json.loads(row['payload_json']) for row in cur.fetchall()]
+
+
+def hourly_counts(start, end):
+    with closing(connect()) as conn, conn.cursor() as cur:
+        cur.execute("SELECT SUBSTR(created_at,1,13) AS hour, decision, COUNT(*) AS count FROM fds_transactions WHERE created_at >= %s AND created_at < %s GROUP BY SUBSTR(created_at,1,13), decision", (start, end))
+        return cur.fetchall()

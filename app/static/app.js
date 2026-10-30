@@ -8,6 +8,7 @@ function showPanel(name){
   document.querySelectorAll('.tab').forEach(tab => {const active=tab.dataset.panel===name;tab.classList.toggle('active',active);tab.setAttribute('aria-selected',String(active));$(tab.dataset.panel).hidden=!active;});
   clearResult();
   if(name==='history-panel') loadHistory();
+  if(name==='stats-panel') loadStats();
 }
 document.querySelectorAll('.tab').forEach(button => button.addEventListener('click', () => showPanel(button.dataset.panel)));
 async function request(url, options){const response = await fetch(url, options); const body = await response.json(); if (!response.ok) throw new Error(typeof body.detail === 'string' ? body.detail : '입력값을 확인해 주세요.'); return body;}
@@ -80,3 +81,32 @@ document.querySelector('[data-panel="security-panel"]').addEventListener('click'
 });
 checkAlerts();
 setInterval(checkAlerts,2000);
+
+async function loadStats(){
+  const content=$('stats-content');
+  try {
+    const data=await request('/statistics'); content.replaceChildren();
+    const total=data.total_approved+data.total_blocked;
+    const summary=document.createElement('div'); summary.className='stats-summary';
+    for(const [label,value] of [['전체',total],['승인',data.total_approved],['차단',data.total_blocked]]){
+      const item=document.createElement('div');const name=document.createElement('span');name.textContent=label;
+      const count=document.createElement('strong');count.textContent=`${value.toLocaleString()}건`;item.append(name,count);summary.append(item);
+    }
+    content.append(summary);
+    const title=document.createElement('h2');title.textContent='일별 거래';title.className='stats-title';content.append(title);
+    if(total===0){const empty=document.createElement('p');empty.className='note';empty.textContent='최근 7일 동안 거래가 없습니다.';content.append(empty);return;}
+    const legend=document.createElement('p');legend.className='stats-legend';legend.innerHTML='<span class="dot approved"></span> 승인 <span class="dot blocked"></span> 차단';content.append(legend);
+    const chart=document.createElement('div');chart.className='stats-chart';
+    const maximum=Math.max(...data.days.map(day=>day.approve+day.block),1);
+    for(const day of data.days){
+      const row=document.createElement('div');row.className='chart-row';
+      const label=document.createElement('span');label.className='chart-date';label.textContent=day.date.slice(5).replace('-','.');
+      const track=document.createElement('div');track.className='chart-track';
+      for(const [kind,value] of [['approved',day.approve],['blocked',day.block]]){const bar=document.createElement('span');bar.className=`chart-bar ${kind}`;bar.style.width=`${value/maximum*100}%`;track.append(bar);}
+      const count=document.createElement('span');count.className='chart-count';count.textContent=String(day.approve+day.block);
+      row.setAttribute('aria-label',`${day.date} 승인 ${day.approve}건, 차단 ${day.block}건`);row.append(label,track,count);chart.append(row);
+    }
+    content.append(chart);
+  }catch(e){content.textContent='거래 통계를 불러올 수 없습니다.';}
+}
+$('refresh-stats').addEventListener('click',loadStats);

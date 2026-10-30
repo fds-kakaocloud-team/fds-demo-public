@@ -6,7 +6,7 @@ import os
 import urllib.error
 import urllib.request
 import pymysql
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from uuid import uuid4
 from pathlib import Path
 from typing import Literal
@@ -204,3 +204,23 @@ def security_alerts():
             return json.load(response)
     except (OSError, ValueError):
         raise HTTPException(503, '보안 알림 서비스에 연결할 수 없습니다.')
+
+
+@app.get('/statistics')
+def statistics():
+    korea = timezone(timedelta(hours=9))
+    today = datetime.now(korea).date()
+    start_day = today - timedelta(days=6)
+    start = datetime.combine(start_day, datetime.min.time(), korea).astimezone(timezone.utc).isoformat()
+    end = datetime.combine(today + timedelta(days=1), datetime.min.time(), korea).astimezone(timezone.utc).isoformat()
+    try:
+        rows = store.hourly_counts(start, end)
+    except (sqlite3.Error, pymysql.MySQLError):
+        raise HTTPException(503, '거래 통계를 불러올 수 없습니다.')
+    days = {str(start_day + timedelta(days=i)): {'date': str(start_day + timedelta(days=i)), 'approve': 0, 'block': 0} for i in range(7)}
+    for row in rows:
+        day = datetime.fromisoformat(row['hour'] + ':00:00+00:00').astimezone(korea).date().isoformat()
+        if day in days and row['decision'] in ('approve', 'block'):
+            days[day][row['decision']] += int(row['count'])
+    result = list(days.values())
+    return {'timezone': 'Asia/Seoul', 'days': result, 'total_approved': sum(d['approve'] for d in result), 'total_blocked': sum(d['block'] for d in result)}
