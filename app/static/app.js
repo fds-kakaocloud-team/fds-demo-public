@@ -36,3 +36,47 @@ $('edit').addEventListener('click',()=>{$('confirm').hidden=true;$('form').hidde
 $('send').addEventListener('click',async()=>{clearResult();const button=$('send');button.disabled=true;try{const data={amount:Number($('amount').value),oldbalance:Number($('oldbalance').value),transaction_type:'TRANSFER',hour:Number($('hour').value),distance_from_last_km:Number($('distance').value)};show(await request('/transactions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}));$('confirm').hidden=true;$('form').hidden=false;$('manual-title').textContent='어디로 보낼까요?';}catch(e){fail(e);}finally{button.disabled=false;}});
 async function loadHistory(){try{const rows=await request('/transactions');const container=$('history');container.replaceChildren();if(!rows.length){container.textContent='거래 내역이 없습니다.';return;}rows.forEach(row=>{const item=document.createElement('div');item.className='history-row';const info=document.createElement('span');info.textContent=`${row.request.amount.toLocaleString()} · ${new Date(row.created_at).toLocaleString('ko-KR')}`;const status=document.createElement('strong');status.textContent=row.decision==='block'?'차단':'승인';status.className=row.decision;item.append(info,status);container.append(item);});}catch(e){fail(e);}}
 $('refresh').addEventListener('click',loadHistory);loadExamples();
+
+let seenAlertIds = null;
+let unreadAlerts = 0;
+let checkingAlerts = false;
+function renderAlerts(items){
+  const list = $('alerts'); list.replaceChildren();
+  if (!items.length) { list.textContent='차단 알림이 없습니다.'; return; }
+  for (const alert of items) {
+    const row=document.createElement('div'); row.className='alert-row';
+    const title=document.createElement('strong'); title.textContent='이상 거래 차단';
+    const meta=document.createElement('small');
+    const reason=alert.reasons.map(value=>value==='paysim'?'거래':'시간·거리').join(', ');
+    meta.textContent=`${new Date(alert.created_at).toLocaleString('ko-KR')} · ${reason || '모델 판정'} · ${alert.transaction_id}`;
+    row.append(title,meta); list.append(row);
+  }
+}
+async function checkAlerts(){
+  if(checkingAlerts) return;
+  checkingAlerts=true;
+  try {
+    const items=await request('/security/alerts');
+    $('security-status').textContent='연결됨';
+    const current=new Set(items.map(item=>item.event_id));
+    if(seenAlertIds!==null){
+      const fresh=items.filter(item=>!seenAlertIds.has(item.event_id));
+      if(fresh.length && activePanel!=='security-panel'){
+        unreadAlerts+=fresh.length;
+        $('alert-banner').textContent=`이상 거래 ${fresh.length}건이 차단되었습니다. 보안 알림에서 확인하세요.`;
+        $('alert-banner').hidden=false;
+      }
+    }
+    seenAlertIds=current;
+    if(activePanel==='security-panel'){unreadAlerts=0;renderAlerts(items);}
+    $('alert-badge').hidden=unreadAlerts===0;
+    $('alert-badge').textContent=unreadAlerts>99?'99+':String(unreadAlerts);
+  } catch(e){$('security-status').textContent='연결 안 됨 · 재시도 중';}
+  finally{checkingAlerts=false;}
+}
+$('refresh-alerts').addEventListener('click',checkAlerts);
+document.querySelector('[data-panel="security-panel"]').addEventListener('click',()=>{
+  unreadAlerts=0; $('alert-badge').hidden=true; $('alert-banner').hidden=true; checkAlerts();
+});
+checkAlerts();
+setInterval(checkAlerts,2000);

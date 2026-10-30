@@ -5,3 +5,5 @@
 .random{display:block;margin:0 0 24px auto;padding:9px 13px;background:transparent;border:1px solid var(--border);color:var(--text);font-size:13px}.random:hover{border-color:var(--text)}
 
 .history{margin-top:0}.history h1{margin:0}.result{margin-top:0}.result-back{margin-top:22px}nav{gap:24px}@media(max-width:600px){nav{gap:18px}.tab{font-size:13px}}
+
+.badge{background:#b94c40;color:white;border-radius:99px;font:11px ui-monospace,monospace;padding:2px 6px}.alert-banner{border-left:3px solid #b94c40;background:#f8e9e3;margin:0 0 24px;padding:14px;font-size:14px}.alert-row{border-bottom:1px solid var(--border);padding:16px 0;line-height:1.5}.alert-row strong{color:#b95d40}.alert-row small{display:block;color:var(--muted);margin-top:5px;overflow-wrap:anywhere}#refresh-alerts{padding:7px 10px;border:1px solid var(--border);background:transparent;font-size:12px}nav{flex-wrap:wrap;gap:8px 20px}

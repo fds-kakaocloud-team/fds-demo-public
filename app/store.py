@@ -47,6 +47,12 @@ def audit(limit=50):
         return [json.loads(row['payload_json']) for row in rows]
 
 
+def blocked_events(limit=100):
+    with closing(connect()) as conn, conn:
+        rows = conn.execute("SELECT payload_json FROM audit_events WHERE event_type = ? ORDER BY id DESC LIMIT ?", ('transaction_blocked', limit)).fetchall()
+        return [json.loads(row['payload_json']) for row in rows]
+
+
 # Keep the SQLite implementation for local development and tests.
 if os.getenv('FDS_STORAGE', 'sqlite') == 'mysql':
     from app import mysql_store as _backend
@@ -54,5 +60,6 @@ if os.getenv('FDS_STORAGE', 'sqlite') == 'mysql':
     record = _backend.record
     recent = _backend.recent
     audit = _backend.audit
+    blocked_events = _backend.blocked_events
 elif os.getenv('FDS_STORAGE', 'sqlite') != 'sqlite':
     raise ValueError('FDS_STORAGE must be sqlite or mysql')

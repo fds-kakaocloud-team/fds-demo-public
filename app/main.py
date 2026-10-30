@@ -2,6 +2,9 @@
 from contextlib import asynccontextmanager
 import json
 import sqlite3
+import os
+import urllib.error
+import urllib.request
 import pymysql
 from datetime import datetime, timezone
 from uuid import uuid4
@@ -191,3 +194,13 @@ def transactions():
 @app.get('/audit-events')
 def audit_events():
     return store.audit()
+
+
+@app.get('/security/alerts')
+def security_alerts():
+    url = os.getenv('FDS_SECURITY_URL', 'http://127.0.0.1:5001').rstrip('/') + '/alerts'
+    try:
+        with urllib.request.urlopen(url, timeout=3) as response:
+            return json.load(response)
+    except (OSError, ValueError):
+        raise HTTPException(503, '보안 알림 서비스에 연결할 수 없습니다.')

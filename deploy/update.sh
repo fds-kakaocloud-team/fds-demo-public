@@ -2,8 +2,8 @@
 # Run only after this WAS has been removed from the LB and the API has stopped.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-if systemctl is-active --quiet fds-api.service || systemctl is-active --quiet fds-audit-worker.service; then
-  echo 'Stop fds-api.service and fds-audit-worker.service after removing this WAS from the load balancer.' >&2
+if systemctl is-active --quiet fds-api.service || systemctl is-active --quiet fds-audit-worker.service || systemctl is-active --quiet fds-security.service; then
+  echo 'Stop fds-api.service, fds-audit-worker.service and fds-security.service after removing this WAS from the load balancer.' >&2
   exit 1
 fi
 if [[ -n "$(git status --porcelain)" ]]; then
