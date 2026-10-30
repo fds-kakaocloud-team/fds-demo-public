@@ -1,0 +1,45 @@
+{
+  "features": [
+    "hour",
+    "distance_from_last_km"
+  ],
+  "threshold": 0.5799999999999997,
+  "split": "60/20/20 stratified; seed 42",
+  "confusion_matrix": [
+    [
+      1739,
+      206
+    ],
+    [
+      40,
+      15
+    ]
+  ],
+  "classification_report": {
+    "0": {
+      "precision": 0.9775154581225407,
+      "recall": 0.8940874035989718,
+      "f1-score": 0.9339419978517723,
+      "support": 1945.0
+    },
+    "1": {
+      "precision": 0.06787330316742081,
+      "recall": 0.2727272727272727,
+      "f1-score": 0.10869565217391304,
+      "support": 55.0
+    },
+    "accuracy": 0.877,
+    "macro avg": {
+      "precision": 0.5226943806449807,
+      "recall": 0.5834073381631222,
+      "f1-score": 0.5213188250128427,
+      "support": 2000.0
+    },
+    "weighted avg": {
+      "precision": 0.952500298861275,
+      "recall": 0.877,
+      "f1-score": 0.9112477233456312,
+      "support": 2000.0
+    }
+  }
+}

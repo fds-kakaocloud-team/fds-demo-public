@@ -1,0 +1,110 @@
+{
+  "dataset": "ULB credit card fraud, Hugging Face mirror",
+  "sha256": "76274b691b16a6c49d3f159c883398e03ccd6d1ee12d9d8ee38f4b4b98551a89",
+  "split": "stratified random 60/20/20, seed 42",
+  "rows": 284807,
+  "fraud_count": 492,
+  "train_rows_for_selection": 170883,
+  "validation_rows": 56962,
+  "final_train_rows": 227845,
+  "test_rows": 56962,
+  "features": [
+    "Time",
+    "V1",
+    "V2",
+    "V3",
+    "V4",
+    "V5",
+    "V6",
+    "V7",
+    "V8",
+    "V9",
+    "V10",
+    "V11",
+    "V12",
+    "V13",
+    "V14",
+    "V15",
+    "V16",
+    "V17",
+    "V18",
+    "V19",
+    "V20",
+    "V21",
+    "V22",
+    "V23",
+    "V24",
+    "V25",
+    "V26",
+    "V27",
+    "V28",
+    "Amount"
+  ],
+  "parameters": {
+    "bootstrap": true,
+    "ccp_alpha": 0.0,
+    "class_weight": null,
+    "criterion": "gini",
+    "max_depth": null,
+    "max_features": "sqrt",
+    "max_leaf_nodes": null,
+    "max_samples": null,
+    "min_impurity_decrease": 0.0,
+    "min_samples_leaf": 2,
+    "min_samples_split": 2,
+    "min_weight_fraction_leaf": 0.0,
+    "monotonic_cst": null,
+    "n_estimators": 60,
+    "n_jobs": -1,
+    "oob_score": false,
+    "random_state": 42,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "threshold": 0.46888888888888886,
+  "selection_metric": "validation F1",
+  "validation_f1": 0.824858757062147,
+  "average_precision": 0.8720083508814821,
+  "confusion_matrix_labels": [
+    0,
+    1
+  ],
+  "confusion_matrix": [
+    [
+      56858,
+      6
+    ],
+    [
+      17,
+      81
+    ]
+  ],
+  "classification_report": {
+    "0": {
+      "precision": 0.9997010989010989,
+      "recall": 0.9998944850872257,
+      "f1-score": 0.9997977826427171,
+      "support": 56864.0
+    },
+    "1": {
+      "precision": 0.9310344827586207,
+      "recall": 0.826530612244898,
+      "f1-score": 0.8756756756756757,
+      "support": 98.0
+    },
+    "accuracy": 0.9995962220427653,
+    "macro avg": {
+      "precision": 0.9653677908298598,
+      "recall": 0.9132125486660618,
+      "f1-score": 0.9377367291591965,
+      "support": 56962.0
+    },
+    "weighted avg": {
+      "precision": 0.9995829617503325,
+      "recall": 0.9995962220427653,
+      "f1-score": 0.9995842373584439,
+      "support": 56962.0
+    }
+  },
+  "sklearn_version": "1.6.1"
+}

@@ -1,0 +1,66 @@
+{
+  "dataset": "data/transactions.csv",
+  "train_rows_for_selection": 6000,
+  "validation_rows": 2000,
+  "final_train_rows": 8000,
+  "test_rows": 2000,
+  "features": [
+    "amount",
+    "hour",
+    "is_overseas",
+    "transactions_last_10min",
+    "distance_from_last_km",
+    "is_new_device"
+  ],
+  "decision_threshold": 0.53,
+  "selection_metric": "validation balanced accuracy",
+  "validation_balanced_accuracy": 0.7440757186258471,
+  "parameters": {
+    "n_estimators": 200,
+    "min_samples_leaf": 100,
+    "class_weight": "balanced"
+  },
+  "sklearn_version": "1.6.1",
+  "confusion_matrix_labels": [
+    0,
+    1
+  ],
+  "confusion_matrix": [
+    [
+      1653,
+      292
+    ],
+    [
+      34,
+      21
+    ]
+  ],
+  "average_precision": 0.10960584526622949,
+  "classification_report": {
+    "0": {
+      "precision": 0.979845880260818,
+      "recall": 0.8498714652956298,
+      "f1-score": 0.9102422907488987,
+      "support": 1945.0
+    },
+    "1": {
+      "precision": 0.0670926517571885,
+      "recall": 0.38181818181818183,
+      "f1-score": 0.11413043478260869,
+      "support": 55.0
+    },
+    "accuracy": 0.837,
+    "macro avg": {
+      "precision": 0.5234692660090032,
+      "recall": 0.6158448235569058,
+      "f1-score": 0.5121863627657537,
+      "support": 2000.0
+    },
+    "weighted avg": {
+      "precision": 0.9547451664769682,
+      "recall": 0.837,
+      "f1-score": 0.8883492147098258,
+      "support": 2000.0
+    }
+  }
+}

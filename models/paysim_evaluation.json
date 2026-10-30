@@ -1,0 +1,54 @@
+{
+  "dataset": "PaySim",
+  "source_sha256": "7bea7b48f926408f41860a55026094f9d441ea786a1dfaec769512dd1249a6fc",
+  "split": "steps 1-500 train, 501-600 validation, 601+ test",
+  "training_sampling": "all fraud and 300000 randomly sampled normal transactions",
+  "train_rows": 305561,
+  "validation_rows": 197240,
+  "test_rows": 103573,
+  "threshold": 0.565600880609926,
+  "validation_f1": 0.8579064587973274,
+  "test_average_precision": 0.9716460115235271,
+  "confusion_matrix_labels": [
+    0,
+    1
+  ],
+  "confusion_matrix": [
+    [
+      101833,
+      140
+    ],
+    [
+      142,
+      1458
+    ]
+  ],
+  "classification_report": {
+    "0": {
+      "precision": 0.998607501838686,
+      "recall": 0.9986270875623939,
+      "f1-score": 0.998617294604507,
+      "support": 101973.0
+    },
+    "1": {
+      "precision": 0.9123904881101377,
+      "recall": 0.91125,
+      "f1-score": 0.9118198874296435,
+      "support": 1600.0
+    },
+    "accuracy": 0.997277282689504,
+    "macro avg": {
+      "precision": 0.9554989949744118,
+      "recall": 0.954938543781197,
+      "f1-score": 0.9552185910170752,
+      "support": 103573.0
+    },
+    "weighted avg": {
+      "precision": 0.9972756178344988,
+      "recall": 0.997277282689504,
+      "f1-score": 0.9972764446582877,
+      "support": 103573.0
+    }
+  },
+  "sklearn_version": "1.6.1"
+}

@@ -1,0 +1,16 @@
+[Unit]
+Description=FDS audit outbox uploader
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/workspace/fds-project
+EnvironmentFile=/home/ubuntu/.config/fds/fds.env
+ExecStart=/home/ubuntu/workspace/fds-project/.venv/bin/python -m app.audit_worker
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

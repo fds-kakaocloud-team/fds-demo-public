@@ -1,0 +1,16 @@
+[Unit]
+Description=FDS mock payment API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/workspace/fds-project
+EnvironmentFile=/home/ubuntu/.config/fds/fds.env
+ExecStart=/home/ubuntu/workspace/fds-project/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 5000
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
