@@ -3,3 +3,5 @@
 .extra{margin-top:26px}
 
 .random{display:block;margin:0 0 24px auto;padding:9px 13px;background:transparent;border:1px solid var(--border);color:var(--text);font-size:13px}.random:hover{border-color:var(--text)}
+
+.history{margin-top:0}.history h1{margin:0}.result{margin-top:0}.result-back{margin-top:22px}nav{gap:24px}@media(max-width:600px){nav{gap:18px}.tab{font-size:13px}}
