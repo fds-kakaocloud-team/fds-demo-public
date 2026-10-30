@@ -69,7 +69,7 @@ flowchart LR
 - 저장소에 포함된 `models/fds_model.pkl`, `models/paysim_model.pkl`, `models/context_model.pkl`
 
 ```bash
-git clone https://github.com/ddingddong9/fds-demo-public.git
+git clone https://github.com/fds-kakaocloud-team/fds-demo-public.git
 cd fds-demo-public
 python3 -m venv .venv
 source .venv/bin/activate
